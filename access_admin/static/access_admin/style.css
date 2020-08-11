@@ -1,0 +1,14 @@
+li {
+    font-size: 45px;
+    color: aquamarine;
+    list-style: none;
+}
+
+#main-logo {
+    width: 100%;
+    height: auto;
+}
+
+.margin-btm-sm {
+    margin-bottom: 18px;
+}
