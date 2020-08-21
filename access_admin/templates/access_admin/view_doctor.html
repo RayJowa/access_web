@@ -1,0 +1,421 @@
+{% extends 'access_admin/index.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block main-content %}
+<div class="content-wrapper">
+    <div class="row">
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card" >
+                <div class="card-body"">
+                    <h4 class="card-title text-center">{{ doc.name }}</h4>
+                    <div class="img-wrapper">
+                        <img src="{% static 'access_admin/images/doc-avatar.png' %}" class="doc-pic">
+                    </div>
+
+                    <div class="data-wrapper">
+                        <p class="tag">City </p>
+                        <h5 class="value">{{ doc.city }}</h5>
+                    </div>
+
+                    <div class="data-wrapper">
+                        <p class="tag">Address</p>
+                        <h5 class="value">{{ doc.address }}</h5>
+                        <h5 class="value">{{ doc.suburb }}</h5>
+                    </div>
+
+                    <div class="data-wrapper">
+                        <p class="tag">Phones</p>
+                        {% for number in doc.phone %}
+                            <h5 class="value">{{ number }}</h5>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-sm-6 grid-margin">
+            <div class="card" >
+                <div class="card-body">
+                    <h5 class="margin-btm-30">Subscriptions</h5>
+                    <div class="row margin-btm-30">
+                        <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                            <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                <h2 class="mb-0">${{ doc.thisMonthPremium | floatformat:2 | intcomma }}</h2>
+                                {% if premium_change > 0 %}
+                                    <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio premium_change 1 100 %}%</p>
+                                {% else %}
+                                    <p class="text-danger ml-2 mb-0 font-weight-medium">{% widthratio premium_change 1 100 %}%</p>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-muted font-weight-normal">Total subs: {{ doc.totalPossiblePremium  | floatformat:2 | intcomma }}</h6>
+                        </div>
+                        <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                            <canvas id="premiumChart" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="margin-btm-30">Members</h5>
+                    <div class="row margin-btm-30">
+                        <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                            <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                <h2 class="mb-0">{{ doc.currentPaidMembers | intcomma }}</h2>
+                                {% if member_change > 0 %}
+                                    <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio member_change 1 100 %}%</p>
+                                {% else %}
+                                    <p class="text-danger ml-2 mb-0 font-weight-medium">{% widthratio member_change 1 100 %}%</p>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-muted font-weight-normal">Total members: {{ doc.totalMembers | intcomma }}</h6>
+                        </div>
+                        <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                            <canvas id="memberChart" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+            <div class="row stretch-card">
+                <div class="col-sm-6 grid-margin">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>New members</h5>
+                            <div class="row margin-btm-30">
+                                <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                                    <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                        <h2 class="mb-0">{{ doc.currentNewMembers }}</h2>
+                                        {% if new_member_change > 0 %}
+                                            <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio new_member_change 1 100 %}%</p>
+                                        {% else %}
+                                            <p class="text-danger ml-2 mb-0 font-weight-medium">+{% widthratio new_member_change 1 100 %}%</p>
+                                        {% endif %}
+                                    </div>
+                                    <h6 class="text-muted font-weight-normal">Last month: {{ doc.previousNewMembers }}</h6>
+                                </div>
+                                <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                                    <i class="icon-lg mdi mdi-account-plus-outline text-warning ml-auto"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 grid-margin">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Deductions</h5>
+                            <div class="row margin-btm-30">
+                                <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                                    <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                        <h2 class="mb-0">$0.00</h2>
+                                    </div>
+
+                                </div>
+                                <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                                    <i class="icon-lg mdi mdi-coin text-danger ml-auto"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    <div class="row ">
+        <div class="col-12 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Specialists</h4>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th> Name</th>
+                                    <th> Premium</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>Physician</th>
+                                    {% if doc.physician.id %}
+                                        <td>{{ doc.physician.name }}</td>
+                                        <td>{{ doc.physician.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add physician</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>General surgeon</th>
+                                    {% if doc.generalSurgeon.id %}
+                                        <td>{{ doc.generalSurgeon.name }}</td>
+                                        <td>{{ doc.generalSurgeon.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add general surgeon</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>Orthopaedic surgeon</th>
+                                    {% if doc.orthopaedicSurgeon.id %}
+                                        <td>{{ doc.orthopaedicSurgeon.name }}</td>
+                                        <td>{{ doc.orthopaedicSurgeon.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add orthopaedic surgeon</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>Paediatrician</th>
+                                    {% if doc.paediatrician.id %}
+                                        <td>{{ doc.paediatrician.name }}</td>
+                                        <td>{{ doc.paediatrician.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add paediatrician</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>Obstetrician and gynaecologist</th>
+                                    {% if doc.obsAndGynae.id %}
+                                        <td>{{ doc.obsAndGynae.name }}</td>
+                                        <td>{{ doc.obsAndGynae.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add obstetrician and gynaecologist</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>Ophthalmologist</th>
+                                    {% if doc.ophthalmologist.id %}
+                                        <td>{{ doc.ophthalmologist.name }}</td>
+                                        <td>{{ doc.ophthalmologist.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add ophthalmologist</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>Ear, Nose and Throat</th>
+                                    {% if doc.eNT.id %}
+                                        <td>{{ doc.eNT.name }}</td>
+                                        <td>{{ doc.eNT.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Add ear, nose and throat</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+                                <tr>
+                                    <th>Physiotherapist</th>
+                                    {% if doc.physiotherapist.id %}
+                                        <td>{{ doc.physiotherapist.name }}</td>
+                                        <td>{{ doc.physiotherapist.premium }}</td>
+                                    {% else %}
+                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}" class="btn btn-outline-success">+ Physiotherapist</a></td>
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+
+
+{#                            {% for specialist in doc.specialists %}#}
+{#                            <tr>#}
+{#                                <td>{{ forloop.counter }}</td>#}
+{#                                <td> {{ specialist.name }} </td>#}
+{#                                <td> {{ specialist.specialty }}</td>#}
+{#                                <td> {{ specialist.premium | floatformat:2 | intcomma }}</td>#}
+{#                                <td>#}
+{#                                    <div class="badge badge-outline-success">Approved</div>#}
+{#                                </td>#}
+{#                            </tr>#}
+{#                            {% endfor %}#}
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="data-wrapper"></div>
+
+{#                    <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown"  aria-expanded="false" href="#">+ Add specialist</a>#}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+              <div class="col-lg-6 grid-margin stretch-card">
+                <div class="card">
+                  <div class="card-body">
+                    <h4 class="card-title">Settlements</h4>
+                    </p>
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Created</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Jacob</td>
+                            <td>53275531</td>
+                            <td>12 May 2017</td>
+                            <td><label class="badge badge-danger">Pending</label></td>
+                          </tr>
+                          <tr>
+                            <td>Messsy</td>
+                            <td>53275532</td>
+                            <td>15 May 2017</td>
+                            <td><label class="badge badge-warning">In progress</label></td>
+                          </tr>
+                          <tr>
+                            <td>John</td>
+                            <td>53275533</td>
+                            <td>14 May 2017</td>
+                            <td><label class="badge badge-info">Fixed</label></td>
+                          </tr>
+                          <tr>
+                            <td>Peter</td>
+                            <td>53275534</td>
+                            <td>16 May 2017</td>
+                            <td><label class="badge badge-success">Completed</label></td>
+                          </tr>
+                          <tr>
+                            <td>Dave</td>
+                            <td>53275535</td>
+                            <td>20 May 2017</td>
+                            <td><label class="badge badge-warning">In progress</label></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6 grid-margin stretch-card">
+                <div class="card">
+                  <div class="card-body">
+                    <h4 class="card-title">Deductions</h4>
+                    </p>
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Description</th>
+                            <th>Recipient</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Jacob</td>
+                            <td>Photoshop</td>
+                            <td class="text-danger"> 28.76% <i class="mdi mdi-arrow-down"></i></td>
+                            <td><label class="badge badge-danger">Pending</label></td>
+                          </tr>
+                          <tr>
+                            <td>Messsy</td>
+                            <td>Flash</td>
+                            <td class="text-danger"> 21.06% <i class="mdi mdi-arrow-down"></i></td>
+                            <td><label class="badge badge-warning">In progress</label></td>
+                          </tr>
+                          <tr>
+                            <td>John</td>
+                            <td>Premier</td>
+                            <td class="text-danger"> 35.00% <i class="mdi mdi-arrow-down"></i></td>
+                            <td><label class="badge badge-info">Fixed</label></td>
+                          </tr>
+                          <tr>
+                            <td>Peter</td>
+                            <td>After effects</td>
+                            <td class="text-success"> 82.00% <i class="mdi mdi-arrow-up"></i></td>
+                            <td><label class="badge badge-success">Completed</label></td>
+                          </tr>
+                          <tr>
+                            <td>Dave</td>
+                            <td>53275535</td>
+                            <td class="text-success"> 98.05% <i class="mdi mdi-arrow-up"></i></td>
+                            <td><label class="badge badge-warning">In progress</label></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+</div>
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript">
+        var premiumChart = document.getElementById('premiumChart').getContext('2d');
+        var memberChart = document.getElementById('memberChart').getContext('2d');
+
+        var premChart = new  Chart(premiumChart, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [{{ unpaid_premium }}, {{ doc.thisMonthPremium }}],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.0)',
+                        'rgba(0, 255, 0, 0.2)',
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 0.0)',
+                        'rgba(0, 255, 0, 0.4)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutoutPercentage: 60
+            }
+        })
+
+        var memChart = new  Chart(memberChart, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [{{ unpaid_members }}, {{ doc.currentPaidMembers }}],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.0)',
+                        'rgba(0, 200, 231, 0.2)',
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 0.0)',
+                        'rgba(0, 200, 231, 0.4)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutoutPercentage: 60
+            }
+        })
+    </script>
+{% endblock %}

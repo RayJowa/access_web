@@ -1,0 +1,133 @@
+{% extends 'access_admin/index.html' %}
+
+{% block main-content %}
+    <div class="page-header">
+        <h3 class="page-title"> Search specialist </h3>
+    </div>
+
+    {% if doctor %}
+    <div class="row">
+        <div class="col-12 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="m-0">{{ doctor.name }}</h5>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Specialist</h4>
+                    {% if doctor_id == '' %}
+                        <form method="post" action="{% url 'access_admin:search_specialist' %}">
+                    {% else %}
+                        <form method="post" action="{% url 'access_admin:doc_search_specialist' doctor_id %}">
+                    {% endif %}
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-3 form-group">
+                                    <label> City</label>
+                                    <select name="city" id="city" class="js-example-basic-single my-city" style="width:100%" onchange="fetchSuburbs(value)">
+                                        <option value="" disabled selected>Select city</option>
+                                        {% for choice in form.city.field.choices %}
+                                            <option value="{{ choice.0 }}"
+                                                    {% ifequal choice.0 form.city.value %}
+                                                        selected
+                                                    {% endifequal %}
+                                            >{{ choice.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.city.errors %}
+                                        {% for error in form.city.errors %}
+                                            <p class="text-warning">{{ error }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                            </div>
+
+                            <div class="col-md-3 form-group">
+                                <label>Specialty</label>
+                                <select name="specialty" id="specialty" class="js-example-basic-single my-city" style="width:100%">
+                                    {% for choice in form.specialty.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                            {% ifequal choice.0 form.specialty.value %}
+                                                selected
+                                            {% endifequal %}
+                                        >{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.specialty.errors %}
+                                    {% for error in form.specialty.errors %}
+                                        <p class="text-warning">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-3 form-group">
+                                <label>Surname</label>
+                                <input type="text" class="form-control" name="surname" value="{{ form.surname.value | default_if_none:'' }}">
+                                {% if form.surname.errors %}
+                                    {% for error in form.surname.errors %}
+                                        <p class="text-warning">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-outline-success mt-lg-4">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if specialists %}
+        <div class="row ">
+            <div class="col-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th> Name</th>
+                                        <th> Specialty</th>
+                                        <th> City</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for specialist in specialists %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td> {{ specialist.name }} </td>
+                                        <td> {{ specialist.f_specialty }}</td>
+                                        <td> {{ specialist.city }}</td>
+                                        <td>
+                                            {% if doctor_id %}
+                                                <a href="{% url 'access_admin:specialist_doctor' doctor_id specialist.id %}" class="btn btn-outline-success mt-lg-4">Add</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="data-wrapper"></div>
+
+    {#                    <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown"  aria-expanded="false" href="#">+ Add specialist</a>#}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+
+{% endblock %}

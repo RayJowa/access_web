@@ -12,10 +12,15 @@
     <link rel="stylesheet" href="{% static 'corona/vendors/css/vendor.bundle.base.css' %}">
     <!-- endinject -->
     <!-- Plugin css for this page -->
-    <!-- End Plugin css for this page -->
-    <!-- inject:css -->
-    <!-- endinject -->
-    <!-- Layout styles -->
+    <!-- Plugin css (Select) -->
+    <link rel="stylesheet" href="{% static 'corona/vendors/jvectormap/jquery-jvectormap.css' %}">
+    <link rel="stylesheet" href="{% static 'corona/vendors/flag-icon-css/css/flag-icon.min.css' %}">
+    <link rel="stylesheet" href="{% static 'corona/vendors/owl-carousel-2/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'corona/vendors/owl-carousel-2/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'corona/vendors/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'corona/vendors/select2-bootstrap-theme/select2-bootstrap.min.css' %}">
+    <!-- End plugin css for this page -->
+
     <link rel="stylesheet" href="{% static 'corona/css/style.css' %}">
     <!-- End layout styles -->
 
@@ -34,56 +39,7 @@
           <a class="sidebar-brand brand-logo-mini" href=""><img src="{% static 'access_admin/images/logo-mini.svg' %}" alt="logo" /></a>
         </div>
         <ul class="nav">
-          <!--li class="nav-item profile">
-            <div class="profile-desc">
-              <div class="profile-pic">
-                <div class="count-indicator">
-                  <img class="img-xs rounded-circle " src="{% static 'corona/images/faces/face15.jpg' %}" alt="">
-                  <span class="count bg-success"></span>
-                </div>
-                <div class="profile-name">
-                  <h5 class="mb-0 font-weight-normal">Henry Klein</h5>
-                  <span>Gold Member</span>
-                </div>
-              </div>
-              <a href="#" id="profile-dropdown" data-toggle="dropdown"><i class="mdi mdi-dots-vertical"></i></a>
-              <div class="dropdown-menu dropdown-menu-right sidebar-dropdown preview-list" aria-labelledby="profile-dropdown">
-                <a href="#" class="dropdown-item preview-item">
-                  <div class="preview-thumbnail">
-                    <div class="preview-icon bg-dark rounded-circle">
-                      <i class="mdi mdi-settings text-primary"></i>
-                    </div>
-                  </div>
-                  <div class="preview-item-content">
-                    <p class="preview-subject ellipsis mb-1 text-small">Account settings</p>
-                  </div>
-                </a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item preview-item">
-                  <div class="preview-thumbnail">
-                    <div class="preview-icon bg-dark rounded-circle">
-                      <i class="mdi mdi-onepassword  text-info"></i>
-                    </div>
-                  </div>
-                  <div class="preview-item-content">
-                    <p class="preview-subject ellipsis mb-1 text-small">Change Password</p>
-                  </div>
-                </a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item preview-item">
-                  <div class="preview-thumbnail">
-                    <div class="preview-icon bg-dark rounded-circle">
-                      <i class="mdi mdi-calendar-today text-success"></i>
-                    </div>
-                  </div>
-                  <div class="preview-item-content">
-                    <p class="preview-subject ellipsis mb-1 text-small">To-do list</p>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </li-->
-          <li class="nav-item nav-category">
+            <li class="nav-item nav-category">
             <span class="nav-link">Navigation</span>
           </li>
           <li class="nav-item menu-items">
@@ -385,9 +341,16 @@
     </div>
     <!-- container-scroller -->
     <!-- plugins:js -->
+
     <script src="{% static 'corona/vendors/js/vendor.bundle.base.js' %}"></script>
     <!-- endinject -->
     <!-- Plugin js for this page -->
+    <script src="{% static 'corona/vendors/chart.js/Chart.min.js' %}"></script>
+    <script src="{% static 'corona/vendors/progressbar.js/progressbar.min.js' %}"></script>
+    <script src="{% static 'corona/vendors/jvectormap/jquery-jvectormap.min.js' %}"></script>
+    <script src="{% static 'corona/vendors/jvectormap/jquery-jvectormap-world-mill-en.js' %}"></script>
+    <script src="{% static 'corona/vendors/owl-carousel-2/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'corona/vendors/select2/select2.min.js' %}"></script>
     <!-- End plugin js for this page -->
     <!-- inject:js -->
     <script src="{% static 'corona/js/off-canvas.js' %}"></script>
@@ -395,8 +358,18 @@
     <script src="{% static 'corona/js/misc.js' %}"></script>
     <script src="{% static 'corona/js/settings.js' %}"></script>
     <script src="{% static 'corona/js/todolist.js' %}"></script>
+    <script src="{% static 'corona/js/select2.js' %}"></script>
+    <script src="{% static 'corona/js/dashboard.js' %}"></script>
     <!-- endinject -->
     <!-- Custom js for this page -->
     <!-- End custom js for this page -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+
+    <!-- Custom JS -->
+    <script src="{% static 'access_admin/script.js' %}"></script>
+
+    {% block script %}{% endblock %}
   </body>
 </html>
