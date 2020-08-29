@@ -2,38 +2,21 @@
 
 {% block main-content %}
     <div class="page-header">
-        <h3 class="page-title"> Search specialist </h3>
+        <h3 class="page-title"> Search doctor </h3>
     </div>
-
-    {% if doctor %}
-    <div class="row">
-        <div class="col-12 grid-margin stretch-card">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="m-0">{{ doctor.name }}</h5>
-
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
     <div class="row">
         <div class="col-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Specialist</h4>
-                    {% if doctor_id == '' %}
-                        <form method="post" action="{% url 'access_admin:search_specialist' %}">
-                    {% else %}
-                        <form method="post" action="{% url 'access_admin:doc_search_specialist' doctor_id %}">
-                    {% endif %}
+                    <h4 class="card-title">Doctor</h4>
+                    <form method="post" action="{% url 'access_admin:search_doctor' %}">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-3 form-group">
                                     <label> City</label>
-                                    <select name="city" id="city" class="js-example-basic-single my-city" style="width:100%" >
-                                        <option value="" disabled selected>Select city</option>
+                                    <select name="city" id="city" class="js-example-basic-single my-city" style="width:100%" onchange="fetchSuburbsSearch(value)">
+                                    <option value="" disabled selected>Select city</option>
                                         {% for choice in form.city.field.choices %}
                                             <option value="{{ choice.0 }}"
                                                     {% ifequal choice.0 form.city.value %}
@@ -41,6 +24,7 @@
                                                     {% endifequal %}
                                             >{{ choice.1 }}</option>
                                         {% endfor %}
+
                                     </select>
                                     {% if form.city.errors %}
                                         {% for error in form.city.errors %}
@@ -50,21 +34,24 @@
                             </div>
 
                             <div class="col-md-3 form-group">
-                                <label>Specialty</label>
-                                <select name="specialty" id="specialty" class="js-example-basic-single my-city" style="width:100%">
-                                    {% for choice in form.specialty.field.choices %}
-                                        <option value="{{ choice.0 }}"
-                                            {% ifequal choice.0 form.specialty.value %}
-                                                selected
-                                            {% endifequal %}
-                                        >{{ choice.1 }}</option>
-                                    {% endfor %}
-                                </select>
-                                {% if form.specialty.errors %}
-                                    {% for error in form.specialty.errors %}
-                                        <p class="text-warning">{{ error }}</p>
-                                    {% endfor %}
-                                {% endif %}
+                                <label>Suburb</label>
+                                <div class="row">
+                                <div class="col-sm-12" id="suburb-select-div">
+                                    <select name="suburb" id="suburb" class="js-example-basic-single my-city" style="width:100%">
+                                        <option value="" disabled selected>Select suburb</option>
+                                    </select>
+                                    {% if form.suburb.errors %}
+                                        {% for error in form.suburb.errors %}
+                                            <p class="text-warning">{{ error }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="clearfix col-sm-2" id="suburb-spinner">
+                                  <div class="spinner-border float-right" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                  </div>
+                                </div>
+                                </div>
                             </div>
 
                             <div class="col-md-3 form-group">
@@ -87,7 +74,7 @@
         </div>
     </div>
 
-    {% if specialists %}
+    {% if doctors %}
         <div class="row ">
             <div class="col-12 grid-margin stretch-card">
                 <div class="card">
@@ -98,22 +85,24 @@
                                     <tr>
                                         <th></th>
                                         <th> Name</th>
-                                        <th> Specialty</th>
+                                        <th> Suburb</th>
                                         <th> City</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for specialist in specialists %}
+                                    {% for doc in doctors %}
                                     <tr>
 
                                         <td>{{ forloop.counter }}</td>
+
                                         <td>
-                                            <a href="{% url 'access_admin:view_specialist' specialist.id %}" class="text-muted">
-                                                {{ specialist.name }}
+                                            <a href="{% url 'access_admin:view_doctor' doc.id %}" class="text-muted">
+                                                {{ doc.name }}
                                             </a>
                                         </td>
-                                        <td> {{ specialist.f_specialty }}</td>
-                                        <td> {{ specialist.city }}</td>
+
+                                        <td> {{ doc.suburb }}</td>
+                                        <td> {{ doc.city }}</td>
                                         <td>
                                             {% if doctor_id %}
                                                 <a href="{% url 'access_admin:specialist_doctor' doctor_id specialist.id %}" class="btn btn-outline-success mt-lg-4">Add</a>
@@ -127,12 +116,24 @@
 
                         <div class="data-wrapper"></div>
 
-    {#                    <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown"  aria-expanded="false" href="#">+ Add specialist</a>#}
                     </div>
                 </div>
             </div>
         </div>
     {% endif %}
-
-
 {% endblock %}
+
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            console.log('THis fired');
+            const city = $('#city').val();
+            console.log(city)
+            if (city!==null) {
+                fetchSuburbsSearch(city);
+            }
+        })
+    </script>
+{% endblock %}
+

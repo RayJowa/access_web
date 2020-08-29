@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from firebase_admin import firestore
 
 from .constants import SPECIALTIES, SPECIALTIES_DICT
-from .forms import DoctorForm, SpecialistForm, SpecialistSearchForm
+from .forms import DoctorForm, SpecialistForm, SpecialistSearchForm, DoctorSearchForm
 from .services import must_login
 
 config = {
@@ -115,6 +115,10 @@ def index(request):
     return render(request, 'access_admin/index.html', context)
 
 
+def boss_dashboard(request):
+    return render(request, 'access_admin/boss_dashboard.html')
+
+
 # ############################################################
 #                           DOCTOR VIEWS
 ##############################################################
@@ -170,11 +174,14 @@ def add_doctor(request):
             suburb_ref = db.collection('suburbs').document(suburb)
             suburb_ref.update({u'doctors': firestore.ArrayUnion([{
                 'docid': doc_ref.id,
-
                 'name': combined_name
             }])})
 
-            return redirect('access_admin:view_doctor', doctor_id=doc_ref.id)
+            suburb_doc = suburb_ref.get()
+            sub = suburb_doc.to_dict()
+            doc_ref.update({'suburb': sub['name']})
+
+            return redirect('access_admin:index')
 
     else:
 
@@ -199,6 +206,57 @@ def fetch_suburbs(request):
         }
 
     return JsonResponse(data)
+
+
+def search_doctor(request):
+
+    # Get list of cities from database
+    cities = db.collection('cities').document('cities').get().to_dict()['cities']
+
+    # convert list to tuple of tuples
+    cities_list = tuple((city, city) for city in cities)
+
+    if request.method == 'POST':
+        form = DoctorSearchForm(request.POST, cities_list=cities_list)
+        if form.is_valid():
+            surname = form.cleaned_data['surname'].upper()
+            city = form.cleaned_data['city']
+            suburb = form.cleaned_data['suburb']
+            end_surname = surname + 'z'
+
+            if suburb == '':
+                query = db.collection('doctor').where(
+                    'city', '==', city).where(
+                    'surname', '>=', surname).where(
+                    'surname', '<=', end_surname).limit(10)
+
+            else:
+                query = db.collection('doctor').where(
+                    'city', '==', city).where(
+                    'suburb', '==', suburb).where(
+                    'surname', '>=', surname).where(
+                    'surname', '<=', end_surname).limit(20)
+
+            docs = query.get()
+
+            doctors = []
+            for doc in docs:
+                doc_dict = doc.to_dict()
+                doc_dict.update({'id': doc.id})
+                doctors.append(doc_dict)
+
+            # TODO Implement pagination
+            return render(request, 'access_admin/search_doctor.html', {
+                'form': form,
+                'doctors': doctors
+            })
+    else:
+        form = DoctorSearchForm(cities_list=cities_list)
+
+    context = {
+        'form': form
+    }
+    return render(request, 'access_admin/search_doctor.html', context)
 
 
 def view_doctor(request, doctor_id):
@@ -241,8 +299,14 @@ def view_doctor(request, doctor_id):
 
 def add_specialist(request):
 
+    # Get list of cities from database
+    cities = db.collection('cities').document('cities').get().to_dict()['cities']
+
+    # convert list to tuple of tuples
+    cities_list = tuple((city, city) for city in cities)
+
     if request.method == 'POST':
-        form = SpecialistForm(request.POST)
+        form = SpecialistForm(request.POST, cities_list=cities_list)
         if form.is_valid():
 
             title = form.cleaned_data["title"]
@@ -278,13 +342,53 @@ def add_specialist(request):
 
             return redirect('access_admin:index')  # TODO consider redirecting to doctor view if request
     else:
-        form = SpecialistForm()
+        form = SpecialistForm(cities_list=cities_list)
 
     return render(request, 'access_admin/add_specialist.html', {'specialist_form': form})
 
 
+def view_specialist(request, specialist_id):
+
+    doc_ref = db.collection('specialist').document(specialist_id)
+    doc = doc_ref.get().to_dict()
+    print(doc)
+
+    # Avoid division by zero
+    if doc['lastMonthPremium'] == 0:
+        premium_change = 0
+    else:
+        premium_change = (doc['thisMonthPremium'] / doc['lastMonthPremium']) - 1
+
+    if doc['previousPaidMembers'] == 0:
+        member_change = 0
+    else:
+        member_change = (doc['currentPaidMembers'] / doc['previousPaidMembers']) - 1
+
+    if doc['previousNewMembers'] == 0:
+        new_member_change = 0
+    else:
+        new_member_change = (doc['currentNewMembers'] / doc['previousNewMembers']) - 1
+
+    unpaid_premium = doc['totalPossiblePremium'] - doc['thisMonthPremium']
+    unpaid_members = doc['totalMembers'] - doc['currentPaidMembers']
+
+    context = {
+        'doctor_id': specialist_id,
+        'doc': doc,
+        'easy_specialty': SPECIALTIES_DICT[doc['specialty']],
+        'member_change': member_change,
+        'new_member_change': new_member_change,
+        'premium_change': premium_change,
+        'unpaid_members': unpaid_members,
+        'unpaid_premium': unpaid_premium
+    }
+    return render(request, 'access_admin/view_specialist.html', context)
+
+
 def search_specialist(request, doctor_id=''):
     # TODO: Implement 'next' navigation
+    specialty = request.GET.get('s', False)
+    print(specialty)
 
     if doctor_id != '':
         doctor_ref = db.collection('doctor').document(doctor_id)
@@ -348,6 +452,7 @@ def search_specialist(request, doctor_id=''):
             cities_list=cities_list,
             specialties_list=specialties
         )
+        print(form)
 
         if form.is_valid():
 
@@ -389,10 +494,20 @@ def search_specialist(request, doctor_id=''):
                           })
 
     else:
-        form = SpecialistSearchForm(
-            cities_list=cities_list,
-            specialties_list=specialties
-        )
+        if specialty:
+            form = SpecialistSearchForm(
+                {
+                    'specialty': specialty,
+                },
+                cities_list=cities_list,
+                specialties_list=specialties,
+            )
+        else:
+            form = SpecialistSearchForm(
+                cities_list=cities_list,
+                specialties_list=specialties,
+            )
+
 
     return render(request, 'access_admin/search_specialist.html', {
         'form': form,
@@ -412,13 +527,13 @@ def specialist_doctor(request, doctor_id, specialist_id):
     spec_ref = db.collection('specialist').document(specialist_id)
     specialist = spec_ref.get().to_dict()
 
-
     doc_ref.update({
         specialist['specialty']: {
             'id': specialist_id,
             'name': specialist['name'],
             'premium': 0
-        }
+        },
+        'specialists': firestore.ArrayUnion([specialist_id])
     })
 
     spec_ref.update({u'doctors': firestore.ArrayUnion([{

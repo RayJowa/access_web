@@ -48,3 +48,7 @@ body {
 .margin-btm-30 {
     margin-bottom: 30px;
 }
+
+.max-height-420{
+    max-height: 420px;
+}

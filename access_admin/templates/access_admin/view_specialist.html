@@ -3,11 +3,13 @@
 {% load humanize %}
 
 {% block main-content %}
+<div class="content-wrapper">
     <div class="row">
         <div class="col-md-4 grid-margin stretch-card">
             <div class="card" >
                 <div class="card-body">
                     <h4 class="card-title text-center">{{ doc.name }}</h4>
+                    <h6 class="text-muted font-weight-normal text-center">{{ easy_specialty }}</h6>
                     <div class="img-wrapper">
                         <img src="{% static 'access_admin/images/doc-avatar.png' %}" class="doc-pic">
                     </div>
@@ -33,55 +35,55 @@
             </div>
         </div>
         <div class="col-md-8">
-            <div class="row stretch-card">
+            <div class="row">
                 <div class="col-sm-6 grid-margin">
-                <div class="card" >
-                    <div class="card-body">
-                        <h5 class="margin-btm-30">Subscriptions</h5>
-                        <div class="row margin-btm-30">
-                            <div class="col-8 col-sm-12 col-xl-8 my-auto">
-                                <div class="d-flex d-sm-block d-md-flex align-items-center">
-                                    <h2 class="mb-0">${{ doc.thisMonthPremium | floatformat:2 | intcomma }}</h2>
-                                    {% if premium_change > 0 %}
-                                        <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio premium_change 1 100 %}%</p>
-                                    {% else %}
-                                        <p class="text-danger ml-2 mb-0 font-weight-medium">{% widthratio premium_change 1 100 %}%</p>
-                                    {% endif %}
-                                </div>
-                                <h6 class="text-muted font-weight-normal">Total subs: {{ doc.totalPossiblePremium  | floatformat:2 | intcomma }}</h6>
+            <div class="card" >
+                <div class="card-body">
+                    <h5 class="margin-btm-30">Subscriptions</h5>
+                    <div class="row margin-btm-30">
+                        <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                            <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                <h2 class="mb-0">${{ doc.thisMonthPremium | floatformat:2 | intcomma }}</h2>
+                                {% if premium_change > 0 %}
+                                    <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio premium_change 1 100 %}%</p>
+                                {% else %}
+                                    <p class="text-danger ml-2 mb-0 font-weight-medium">{% widthratio premium_change 1 100 %}%</p>
+                                {% endif %}
                             </div>
-                            <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                                <canvas id="premiumChart" width="400" height="400"></canvas>
-                            </div>
+                            <h6 class="text-muted font-weight-normal">Total subs: {{ doc.totalPossiblePremium  | floatformat:2 | intcomma }}</h6>
+                        </div>
+                        <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                            <canvas id="premiumChart" width="400" height="400"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-                <div class="col-sm-6 grid-margin">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="margin-btm-30">Members</h5>
-                            <div class="row margin-btm-30">
-                                <div class="col-8 col-sm-12 col-xl-8 my-auto">
-                                    <div class="d-flex d-sm-block d-md-flex align-items-center">
-                                        <h2 class="mb-0">{{ doc.currentPaidMembers | intcomma }}</h2>
-                                        {% if member_change > 0 %}
-                                            <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio member_change 1 100 %}%</p>
-                                        {% else %}
-                                            <p class="text-danger ml-2 mb-0 font-weight-medium">{% widthratio member_change 1 100 %}%</p>
-                                        {% endif %}
-                                    </div>
-                                    <h6 class="text-muted font-weight-normal">Total members: {{ doc.totalMembers | intcomma }}</h6>
-                                </div>
-                                <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                                    <canvas id="memberChart" width="400" height="400"></canvas>
-                                </div>
+        <div class="col-sm-6 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="margin-btm-30">Members</h5>
+                    <div class="row margin-btm-30">
+                        <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                            <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                <h2 class="mb-0">{{ doc.currentPaidMembers | intcomma }}</h2>
+                                {% if member_change > 0 %}
+                                    <p class="text-success ml-2 mb-0 font-weight-medium">+{% widthratio member_change 1 100 %}%</p>
+                                {% else %}
+                                    <p class="text-danger ml-2 mb-0 font-weight-medium">{% widthratio member_change 1 100 %}%</p>
+                                {% endif %}
                             </div>
+                            <h6 class="text-muted font-weight-normal">Total members: {{ doc.totalMembers | intcomma }}</h6>
+                        </div>
+                        <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                            <canvas id="memberChart" width="400" height="400"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+        </div>
 
             <div class="row stretch-card">
                 <div class="col-sm-6 grid-margin">
@@ -136,105 +138,29 @@
         <div class="col-12 grid-margin">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Specialists</h4>
+                    <h4 class="card-title">Doctors</h4>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive max-height-420">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th></th>
                                     <th> Name</th>
-                                    <th> Premium</th>
+                                    <th class="text-center"> Total members</th>
+                                    <th class="text-center"> Paid members</th>
+                                    <th class="text-center"> Premium</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <th>Physician</th>
-                                    {% if doc.physician.id %}
-                                        <td>{{ doc.physician.name }}</td>
-                                        <td>{{ doc.physician.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=physician" class="btn btn-outline-success">+ Add physician</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>General surgeon</th>
-                                    {% if doc.generalSurgeon.id %}
-                                        <td>{{ doc.generalSurgeon.name }}</td>
-                                        <td>{{ doc.generalSurgeon.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=generalSurgeon" class="btn btn-outline-success">+ Add general surgeon</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>Orthopaedic surgeon</th>
-                                    {% if doc.orthopaedicSurgeon.id %}
-                                        <td>{{ doc.orthopaedicSurgeon.name }}</td>
-                                        <td>{{ doc.orthopaedicSurgeon.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=orthopaedicSurgeon" class="btn btn-outline-success">+ Add orthopaedic surgeon</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>Paediatrician</th>
-                                    {% if doc.paediatrician.id %}
-                                        <td>{{ doc.paediatrician.name }}</td>
-                                        <td>{{ doc.paediatrician.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=paediatrician" class="btn btn-outline-success">+ Add paediatrician</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>Obstetrician and gynaecologist</th>
-                                    {% if doc.obsAndGynae.id %}
-                                        <td>{{ doc.obsAndGynae.name }}</td>
-                                        <td>{{ doc.obsAndGynae.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=obsAndGynae" class="btn btn-outline-success">+ Add obstetrician and gynaecologist</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>Ophthalmologist</th>
-                                    {% if doc.ophthalmologist.id %}
-                                        <td>{{ doc.ophthalmologist.name }}</td>
-                                        <td>{{ doc.ophthalmologist.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=ophthalmologist" class="btn btn-outline-success">+ Add ophthalmologist</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>Ear, Nose and Throat</th>
-                                    {% if doc.eNT.id %}
-                                        <td>{{ doc.eNT.name }}</td>
-                                        <td>{{ doc.eNT.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=eNT" class="btn btn-outline-success">+ Add ear, nose and throat</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
-
-                                <tr>
-                                    <th>Physiotherapist</th>
-                                    {% if doc.physiotherapist.id %}
-                                        <td>{{ doc.physiotherapist.name }}</td>
-                                        <td>{{ doc.physiotherapist.premium }}</td>
-                                    {% else %}
-                                        <td><a href="{% url 'access_admin:doc_search_specialist' doctor_id %}?s=physiotherapist" class="btn btn-outline-success">+ Physiotherapist</a></td>
-                                        <td></td>
-                                    {% endif %}
-                                </tr>
+                                {% for doctor in doc.doctors %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ doctor.name }}</td>
+                                        <td class="text-center">{{ doctor.totalMembers }}</td>
+                                        <td class="text-center">{{ doctor.paidMembers }}</td>
+                                        <td class="text-center">{{ doctor.premium }}</td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -352,6 +278,7 @@
                 </div>
               </div>
             </div>
+</div>
 {% endblock %}
 
 
