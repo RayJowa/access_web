@@ -1,0 +1,148 @@
+{% extends 'access_admin/index.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block main-content %}
+    <div class="row">
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center">
+                        {{ policy.title }} {{ policy.firstName | title }} {{ policy.surname | title }}
+                    </h4>
+
+                    <div class="img-wrapper">
+                        <img src="{% static 'access_admin/images/policy-avatar.png' %}" class="doc-pic">
+                    </div>
+
+                    <div class="data-wrapper">
+                        <p class="tag">Phone </p>
+                        <h5 class="value">{{ policy.phone }}</h5>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-row justify-content-between">
+                        <h4 class="card-title mb-lg-4">Policy details</h4>
+                    </div>
+                    <div class="row">
+                        <p class="col-md-3 text-muted">Policy number</p>
+                        <p class="col-md-9">{{ policy.id }}</p>
+                    </div>
+
+                    <div class="row">
+                        <p class="col-md-3 text-muted">Basic premium</p>
+                        <p class="col-md-9">{{ policy.basicPremium }}</p>
+                    </div>
+
+                    <div class="row">
+                        <p class="col-md-3 text-muted">Chronic add-on</p>
+                        <p class="col-md-9">{{ policy.chronicAddOn }}</p>
+                    </div>
+
+                    <div class="row">
+                        <p class="col-md-3 text-muted">Monthly premium</p>
+                        <p class="col-md-9">{{ policy.chronicAddOn }}</p>
+                    </div>
+
+                    <div class="row">
+                        <p class="col-md-3 text-muted">Status</p>
+                        <div class="col-md-9">
+                            <p class="badge badge-outline-success">{{ policy.status }}</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row ">
+        <div class="col-12 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Dependents</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th> Name</th>
+                                <th> ID number</th>
+                                <th class="text-center"> Package</th>
+                                <th class="text-center"> Monthly premium</th>
+                                <th class="text-center"> Chronic add-on</th>
+                                <th> Doctor</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for dependent in policy.dependents %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ dependent.firstName | title }} {{ dependent.surname | title }}</td>
+                                    <td>{{ dependent.idNumber}}</td>
+                                    <td class="text-center">{{ dependent.package }}</td>
+                                    <td class="text-center">{{ dependent.monthlyPremium }}</td>
+                                    <td class="text-center">{{ dependent.chronicAddOnAmount }}</td>
+                                    <td>{{ dependent.doctor.name }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row ">
+        <div class="col-md-8 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Recent receipts</h4>
+
+                    {% if receipts %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th class="text-center">Payment method</th>
+                                <th class="text-center">Currency</th>
+                                <th class="text-center">Amount</th>
+                                <th class="text-center">Effective amount</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for receipt in receipts %}
+                            <tr>
+                                <td>{{ receipt.datePaid|date:'j M Y' }}</td>
+                                <td class="text-center">{{ receipt.paymentMethod }}</td>
+                                <td class="text-center">{{ receipt.currency }}</td>
+                                <td class="text-center">{{ receipt.rtgsAmount | default_if_none:receipt.amount}}</td>
+                                <td class="text-center">{{ receipt.amount }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                        <p class="text-danger">No receipts yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">-</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

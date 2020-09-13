@@ -159,3 +159,11 @@ class DoctorSearchForm(forms.Form):
     suburb = forms.CharField(max_length=20, required=False)
 
 
+class PolicySearchForm(forms.Form):
+    policy_number = forms.CharField(max_length=20, required=False)
+    surname = forms.CharField(max_length=20, required=False)
+    id_number = forms.CharField(max_length=20, required=False)
+
+
+
+

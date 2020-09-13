@@ -3,9 +3,9 @@
 {% load humanize %}
 
 {% block main-content %}
-    <form method="post" action="{% url 'access_admin:search_policy' %}">
+    <form method="post" action="{% url 'access_admin:doctor_search_policy' %}">
     <div class="page-header">
-        <h3 class="page-title"> Search policy </h3>
+        <h3 class="page-title"> Search member </h3>
     </div>
 
     <div class="row">
@@ -27,7 +27,7 @@
                             </div>
 
                             <div class="col-md-3 form-group">
-                                <label for="surname"> Surname</label>
+                                <label for="surname">Policyholder Surname</label>
                                 <input type="text" class="form-control" name="surname" value="{{ form.surname.value | default_if_none:'' }}">
                                 {% if form.surname.errors %}
                                     {% for error in form.surname.errors %}

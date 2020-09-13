@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from firebase_admin import firestore
 
 from .constants import SPECIALTIES, SPECIALTIES_DICT
-from .forms import DoctorForm, SpecialistForm, SpecialistSearchForm, DoctorSearchForm
+from .forms import DoctorForm, DoctorSearchForm, PolicySearchForm, SpecialistForm, SpecialistSearchForm
 from .services import must_login
 
 config = {
@@ -297,6 +297,30 @@ def view_doctor(request, doctor_id):
     return render(request, 'access_admin/view_doctor.html', context)
 
 
+def doctor_search_policy(request):
+
+    if request.method == 'POST':
+        form = PolicySearchForm(request.POST)
+        if form.is_valid():
+            policy_number = form.cleaned_data['policy_number']
+            surname = form.cleaned_data['surname']
+            id_number = form.cleaned_data['id_number']
+            print(policy_number)
+            print(surname)
+            print(id_number)
+
+            return render(request, 'access_admin/doctor_search_policy.html', {
+                'form': form,
+            })
+
+    else:
+        form = PolicySearchForm()
+
+    return render(request, 'access_admin/doctor_search_policy.html', {
+        'form': form
+    })
+
+
 def add_specialist(request):
 
     # Get list of cities from database
@@ -508,7 +532,6 @@ def search_specialist(request, doctor_id=''):
                 specialties_list=specialties,
             )
 
-
     return render(request, 'access_admin/search_specialist.html', {
         'form': form,
         'doctor_id': doctor_id,
@@ -546,11 +569,147 @@ def specialist_doctor(request, doctor_id, specialist_id):
 
     return redirect('access_admin:view_doctor', doctor_id)
 
+
+def search_policy(request, last=False):
+
+    last = False
+
+    if request.method == 'POST':
+
+        form = PolicySearchForm(request.POST)
+
+        # check if user has pressed the 'next' button
+        if 'next' in request.POST:
+            # get the ID of the last policy in current batch
+            last = request.POST['last']
+
+        if form.is_valid():
+            policy_number = form.cleaned_data['policy_number']
+            surname = form.cleaned_data['surname']
+            id_number = form.cleaned_data['id_number']
+
+            per_page = 10
+            # query = db.collection('policy')
+            # policy_docs = query.get()
+
+            if last: # request is coming from next button with, a last policy from the batch
+                policy_docs = policy_query(
+                    id_number=id_number,
+                    surname=surname,
+                    per_page=per_page,
+                    start_after=last
+                )
+            else:
+                policy_docs = policy_query(
+                    id_number=id_number,
+                    surname=surname,
+                    per_page=per_page,
+                )
+
+            policies = []
+            for pol in policy_docs:
+                pol_dict = pol.to_dict()
+
+                monthly_premium = pol_dict['basicPremium'] + pol_dict['chronicAddOn']
+                pol_dict.update({
+                    'id': pol.id,
+                    'monthly_premium': monthly_premium
+                })
+                policies.append(pol_dict)
+
+            # check if there's still more documents in the database
+            if len(policies) == per_page:
+                last_doc = policies[len(policies)-1]
+                last = last_doc['id']
+
+            else:
+                # no more documents, disable the next button
+                last = False
+
+            print(policies)
+
+            return render(request, 'access_admin/search_policy.html', {
+                'form': form,
+                'policies': policies,
+                'last': last
+            })
+
+    else:
+        form = PolicySearchForm()
+
+    return render(request, 'access_admin/search_policy.html', {
+        'form': form,
+        'last': last
+    })
+
+
+def policy_query(
+        id_number,
+        policy_number=False,
+        surname='',
+        per_page=10,
+        start_after=False,
+        status='active'
+):
+    end_surname = surname + 'z'
+
+    if id_number == '':
+        if start_after:
+            doc = db.collection('policy').document(start_after).get()
+
+            q = db.collection('policy').where(
+                'surname', '>=', surname).where(
+                'surname', '<=', end_surname).where(
+                'status', '==', status).order_by(
+                'surname').limit(per_page).start_after(doc)
+        else:
+            q = db.collection('policy').where(
+                'surname', '>=', surname).where(
+                'surname', '<=', end_surname).where(
+                'status', '==', status).order_by(
+                'surname').limit(per_page)
+    else:
+        if start_after:
+            doc = db.collection('policy').document(start_after).get()
+
+            q = db.collection('policy').where(
+                'surname', '>=', surname).where(
+                'surname', '<=', end_surname).where(
+                'idNumber', '==', id_number).where(
+                'status', '==', status).order_by(
+                'surname').limit(per_page).start_after(doc)
+        else:
+            q = db.collection('policy').where(
+                'surname', '>=', surname).where(
+                'surname', '<=', end_surname).where(
+                'idNumber', '==', id_number).where(
+                'status', '==', status).order_by(
+                'surname').limit(per_page)
+
+    return q.get()
+
+
+def view_policy(request, policy_id):
+    policy_ref = db.collection('policy').document(policy_id)
+    policy_doc = policy_ref.get()
+    policy = policy_doc.to_dict()
+    policy.update({'id': policy_doc.id})
+
+    receipt_query = db.collection('receipts').where(
+        'policyID', '==', policy_id).order_by('datePaid', direction=firestore.Query.DESCENDING).limit(5)
+
+    receipts = [receipt.to_dict() for receipt in receipt_query.get()]
+
+    if len(receipts) == 0:
+        receipts = False
+
+    return render(request, 'access_admin/view_policy.html', {
+        'policy': policy,
+        'receipts': receipts
+    })
+
 # Todo
-# - whole specialist workings
 # - Implement capture deductions (from admin side)
 # - view deduction (doctor can access by menu and by clicking deductions summary on dashboard)
-# - doctor + specialist  search
-
 
 
