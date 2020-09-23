@@ -2,13 +2,14 @@ import datetime
 import firebase_admin
 import pyrebase
 
-from django.contrib import auth
+from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from firebase_admin import firestore
 
 from .constants import SPECIALTIES, SPECIALTIES_DICT
-from .forms import DoctorForm, DoctorSearchForm, PolicySearchForm, SpecialistForm, SpecialistSearchForm
+from .forms import DoctorForm, DoctorSearchForm, PolicySearchForm, SpecialistForm, SpecialistSearchForm, \
+    DoctorPolicySearchForm, DocRegisterForm, SignInForm
 from .services import must_login
 
 config = {
@@ -66,28 +67,70 @@ def register(request):
         return render(request, 'auth/register.html')
 
 
+def doctor_register(request):
+    if request.method == 'POST':
+        form = DocRegisterForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            phone = form.cleaned_data['phone']
+            password = form.cleaned_data['password']
+
+            # try:
+            user = firebase_auth.create_user_with_email_and_password(email, password)
+
+            firebase_auth.sign_in_with_email_and_password(email, password)
+
+            doc_ref = db.collection('doctor').document(user['localId'])
+            doc = doc_ref.set({
+                'email': email,
+                'phone': [phone, ]
+            })
+
+            db.collection('users').document(user['localId']).set({'userClass': 'doctor'})
+
+            return redirect('access_admin:new_doctor', doctor_id=user['localId'])
+
+            # except:
+            #     context = {
+            #         'message': 'Failed to register. Please try again'
+            #     }
+
+    else:
+        form = DocRegisterForm()
+
+    return render(request, 'auth/doctor_register.html', {'form': form})
+
+
 def sign_in(request, next_to):
     if request.method == 'POST':
-        # TODO: Implement validation using forms
-        email = request.POST['email']
-        password = request.POST['password']
+        form = SignInForm(request.POST)
 
-        # try:
-        user = firebase_auth.sign_in_with_email_and_password(email, password)
-        print('==========================')
-        print(user)
-        # auth.login(request, )
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
 
-        session_id = user['idToken']
-        request.session['logged_in'] = True
-        request.session['uid'] = str(session_id)
-        user_details = db.collection('users').document(user['localId']).get()
-        if user_details.exists:
-            # request.session['first_name'] = user_details.to_dict()['firstName']
-            # request.session['surname'] = user_details.to_dict()['surname']
+            # try:
+            user = firebase_auth.sign_in_with_email_and_password(email, password)
+            print(user)
 
-            return redirect('access_admin:index')
+            # session_id = user['idToken']
+            request.session['logged_in'] = True
+            request.session['uid'] = user['localId']
 
+            # request.session['doctor_id'] = 'FjajSX7eEFCejPq9msl3'
+            user_details = db.collection('users').document(user['localId']).get()
+            if user_details.exists:
+                # request.session['first_name'] = user_details.to_dict()['firstName']
+                # request.session['surname'] = user_details.to_dict()['surname']
+                details = user_details.to_dict()
+
+                user_class = details['userClass'] or 'none'
+                request.session['userClass'] = user_class
+
+                if details['userClass'] == 'doctor':
+                    return redirect('access_admin:view_doctor', user['localId'])
+                else:
+                    return redirect('access_admin:index')
         # except:
         #     message = 'Invalid credentials'
         #     context = {
@@ -97,9 +140,12 @@ def sign_in(request, next_to):
         #     return render(request, 'auth/sign_in.html', context)
 
     else:
-        return render(request, 'auth/sign_in.html')
+        form = SignInForm()
+
+    return render(request, 'auth/sign_in.html')
 
 
+@must_login
 def sign_out(request):
     del request.session['logged_in']
 
@@ -123,6 +169,7 @@ def boss_dashboard(request):
 #                           DOCTOR VIEWS
 ##############################################################
 
+# adding doctor by administrator
 @must_login
 def add_doctor(request):
 
@@ -188,6 +235,88 @@ def add_doctor(request):
         form = DoctorForm(cities_list=cities_list)
 
     return render(request, 'access_admin/add_doctor.html', {'doctor_form': form})
+
+
+# self registration profile
+def new_doctor(request, doctor_id):
+
+    # Get list of cities from database
+    cities = db.collection('cities').document('cities').get().to_dict()['cities']
+
+    # convert list to tuple of tuples
+    cities_list = tuple((city, city) for city in cities)
+
+    doc_ref = doc_ref = db.collection('doctor').document(doctor_id)
+
+    if request.method == 'POST':
+        form = DoctorForm(request.POST, cities_list=cities_list)
+        if form.is_valid():
+            first_name = form.cleaned_data['first_name']
+            surname = form.cleaned_data['surname']
+            title = form.cleaned_data['title']
+            gender = form.cleaned_data['gender']
+            date_of_birth = form.cleaned_data['date_of_birth']
+            address = form.cleaned_data['address']
+            suburb = form.cleaned_data['suburb']
+            city = form.cleaned_data['city']
+            phone1 = form.cleaned_data['phone1']
+            phone2 = form.cleaned_data['phone2']
+            email = form.cleaned_data['email']
+
+            print(f'name - {first_name}')
+            print(f'title - {title}')
+            print(f'gender - {gender}')
+            print(f'DOB - {date_of_birth}')
+            print(f'city - {city}')
+            print(f'suburb - {suburb}')
+
+            combined_name = f'{title} {first_name[0]}. {surname}'
+
+            # TODO validate age, phone number,
+
+            doc_ref = db.collection('doctor').document(doctor_id)
+            doc_ref.update({
+                'firstName': first_name,
+                'surname': surname.upper(),
+                'name': combined_name,
+                'gender': gender,
+                'dateOfBirth': datetime.datetime.combine(date_of_birth, datetime.time()),
+                'address': address,
+                'city': city,
+                'phone': [phone1, phone2],
+                'email': email
+            })
+
+            suburb_ref = db.collection('suburbs').document(suburb)
+            suburb_ref.update({u'doctors': firestore.ArrayUnion([{
+                'docid': doctor_id,
+                'name': combined_name
+            }])})
+
+            suburb_doc = suburb_ref.get()
+            sub = suburb_doc.to_dict()
+            doc_ref.update({'suburb': sub['name']})
+
+            user_ref = db.collection('users').document(doctor_id).update({
+                'firstName': first_name,
+                'surname': surname
+            })
+
+            return redirect('access_admin:index')
+
+    else:
+        doc = doc_ref.get()
+
+        doctor = doc.to_dict()
+        form = DoctorForm(initial={'phone1': doctor['phone'][0]},
+                          cities_list=cities_list,
+                          )
+
+    return render(request, 'doctor/new_doctor.html',
+                  {
+                      'doctor_form': form,
+                      'doctor_id': doctor_id
+                   })
 
 
 def fetch_suburbs(request):
@@ -291,33 +420,58 @@ def view_doctor(request, doctor_id):
         'new_member_change': new_member_change,
         'premium_change': premium_change,
         'unpaid_members': unpaid_members,
-        'unpaid_premium': unpaid_premium
+        'unkpaid_premium': unpaid_premium
     }
 
-    return render(request, 'access_admin/view_doctor.html', context)
+    # redirect based on user class
+    try:
+        user_class = request.session['userClass']
+    except KeyError:
+        user_class = None
+
+    if user_class == 'doctor':
+        return render(request, 'doctor/doctor_profile.html', context)
+    else:
+        return render(request, 'access_admin/view_doctor.html', context)
 
 
 def doctor_search_policy(request):
-
+    searched = False
     if request.method == 'POST':
-        form = PolicySearchForm(request.POST)
+        form = DoctorPolicySearchForm(request.POST)
         if form.is_valid():
-            policy_number = form.cleaned_data['policy_number']
-            surname = form.cleaned_data['surname']
-            id_number = form.cleaned_data['id_number']
+            policy_number = form.cleaned_data['policy_number'].upper()
             print(policy_number)
-            print(surname)
-            print(id_number)
 
-            return render(request, 'access_admin/doctor_search_policy.html', {
+            query = db.collection('policy').where(
+                'policyNumber', '==', policy_number
+            )
+            data = query.get()
+
+            doctor_id = request.session['uid']
+            print(request.session['uid'])
+            print(len(data))
+
+            dependents = []
+            searched = True
+            if len(data) > 0:
+                for policy in data:
+                    for dependent in policy.to_dict()['dependents']:
+                        if dependent['doctor']['docid'] == doctor_id:
+                            dependents.append(dependent)
+
+            return render(request, 'doctor/doctor_search_policy.html', {
                 'form': form,
+                'dependents': dependents,
+                'searched': searched
             })
 
     else:
-        form = PolicySearchForm()
+        form = DoctorPolicySearchForm()
 
-    return render(request, 'access_admin/doctor_search_policy.html', {
-        'form': form
+    return render(request, 'doctor/doctor_search_policy.html', {
+        'form': form,
+        'searched': searched
     })
 
 
@@ -342,7 +496,7 @@ def add_specialist(request):
             combined_name = f'{title} {first_name[0]}. {surname}'
 
             if phone2 == '':
-                phones = [phone1,]
+                phones = [phone1, ]
             else:
                 phones = [phone1, phone2]
 

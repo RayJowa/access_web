@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from .constants import SPECIALTIES
 
@@ -165,5 +166,24 @@ class PolicySearchForm(forms.Form):
     id_number = forms.CharField(max_length=20, required=False)
 
 
+class DoctorPolicySearchForm(forms.Form):
+    policy_number = forms.CharField(max_length=20)
+    surname = forms.CharField(max_length=20, required=False)
+    id_number = forms.CharField(max_length=20, required=False)
 
 
+class DocRegisterForm(forms.Form):
+    email = forms.EmailField()
+    phone = forms.CharField(max_length=10)
+    password = forms.CharField(max_length=30)
+    confirm_password = forms.CharField(max_length=30)
+
+    def clean_confirm_password(self):
+        if self.cleaned_data['password'] != self.cleaned_data['confirm_password']:
+            raise ValidationError('Passwords do not match.')
+        return self.cleaned_data['confirm_password']
+
+
+class SignInForm(forms.Form):
+    email = forms.EmailField()
+    password = forms.CharField(max_length=30)

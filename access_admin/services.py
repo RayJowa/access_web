@@ -16,3 +16,9 @@ def must_login(function):
             return redirect('access_admin:sign_in')
 
     return wrapper
+
+
+def doctor_required(function,):
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        types = request.session.get('types', [])

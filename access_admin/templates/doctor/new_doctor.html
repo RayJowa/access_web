@@ -1,0 +1,220 @@
+{% extends 'access_admin/../doctor/doctor_base.html' %}
+
+{% block main-content %}
+    <div class="page-header">
+        <h3 class="page-title"> New doctor profile</h3>
+    </div>
+    <div class="row">
+        <div class="col-12 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Doctor details</h4>
+                    <form class="form-sample" method="post">
+                        {% csrf_token %}
+                        {% for hidden in doctor_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        {% if doctor_form.non_field_errors %}
+                            {% for error in doctor_form.non_field_errors %}
+                                <p class="badge-outline-warning">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+
+
+                        <p class="card-description"> Personal info </p>
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">First Name</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" name="first_name" value="{{ doctor_form.first_name.value | default_if_none:'' }}">
+                                        {% if doctor_form.first_name.errors %}
+                                            {% for error in doctor_form.first_name.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Surname</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" name="surname" value="{{ doctor_form.surname.value | default_if_none:'' }}">
+                                        {% if doctor_form.surname.errors %}
+                                            {% for error in doctor_form.surname.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Title</label>
+                                    {% for des in doctor_form.title.field.choices %}
+                                    <div class="col-sm-2">
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input type="radio" class="form-check-input" name="title"  value="{{ des.0 }}"
+                                                       {% ifequal doctor_form.title.value des.0 %}
+                                                           checked
+                                                       {% endifequal %}
+                                                >{{des.1}}</label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="col-sm-3"></div>
+                                    <div class="col-sm-9">
+                                    {% if doctor_form.title.errors %}
+                                        {% for error in doctor_form.title.errors %}
+                                            <p class="text-warning">{{ error }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Gender</label>
+                                    {% for sex in doctor_form.gender.field.choices %}
+                                        <div class="col-sm-3">
+                                            <div class="form-check">
+                                                <label class="form-check-label">
+                                                    <input type="radio" class="form-check-input" name="gender" value="{{ sex.0 }}"
+                                                            {% ifequal doctor_form.gender.value sex.0 %}
+                                                                checked
+                                                            {% endifequal %}
+                                                    >
+                                                {{ sex.1 }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Date of Birth</label>
+                                    <div class="col-sm-9">
+                                        <input type="date" class="form-control" placeholder="mm/dd/yyyy" name="date_of_birth" value="{{ doctor_form.date_of_birth.value }}">
+                                        {% if doctor_form.date_of_birth.errors %}
+                                            {% for error in doctor_form.date_of_birth.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="card-description"> Address </p>
+
+                        <div class="row">
+                            <div class="col-md-6">
+
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">City</label>
+                                    <div class="col-sm-9">
+                                        <div class="form-group">
+                                        <select name="city" id="city" class="js-example-basic-single my-city" style="width:100%" onchange="fetchSuburbs(value)">
+                                            <option value="" disabled selected>Select city</option>
+                                            {% for choice in doctor_form.city.field.choices %}
+                                                <option value="{{ choice.0 }}"
+                                                        {% ifequal choice.0 doctor_form.city.value %}
+                                                            selected
+                                                        {% endifequal %}
+                                                >{{ choice.1 }}</option>
+                                            {% endfor %}
+                                          </select>
+                                        </div>
+                                        {% if doctor_form.city.errors %}
+                                            {% for error in doctor_form.city.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Suburb</label>
+                                    <div class="col-sm-9">
+                                        <div class="row">
+                                        <div class="col-sm-12" id="suburb-select-div">
+                                            <select name="suburb" id="suburb" class="js-example-basic-single my-city" style="width:100%" >
+                                                <option value="" disabled selected>Select suburb</option>
+                                            </select>
+                                        </div>
+                                        <div class="clearfix col-sm-2" id="suburb-spinner">
+                                          <div class="spinner-border float-right" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                          </div>
+                                        </div>
+                                        <p class="text-warning" id="suburb-error"></p>
+
+                                        {% if doctor_form.first_name.errors %}
+                                            {% for error in doctor_form.first_name.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Address</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" name="address" value="{{ doctor_form.address.value | default_if_none:'' }}">
+                                        {% if doctor_form.address.errors %}
+                                            {% for error in doctor_form.address.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Phone 1</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="phone1" class="form-control"  value="{{ doctor_form.phone1.value | default_if_none:'' }}">
+                                        {% if doctor_form.phone1.errors %}
+                                            {% for error in doctor_form.phone1.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Phone 2</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="phone2" class="form-control" value="{{ doctor_form.phone2.value | default_if_none:'' }}">
+                                        {% if doctor_form.phone2.errors %}
+                                            {% for error in doctor_form.phone2.errors %}
+                                                <p class="text-warning">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <input type="submit" value="Save" class="btn btn-outline-primary btn-fw btn-block btn-lg">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

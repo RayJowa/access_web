@@ -1,4 +1,4 @@
-{% extends 'access_admin/index.html' %}
+{% extends 'doctor/doctor_base.html' %}
 
 {% load humanize %}
 
@@ -26,26 +26,6 @@
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-3 form-group">
-                                <label for="surname">Policyholder Surname</label>
-                                <input type="text" class="form-control" name="surname" value="{{ form.surname.value | default_if_none:'' }}">
-                                {% if form.surname.errors %}
-                                    {% for error in form.surname.errors %}
-                                        <p class="text-warning">{{ error }}</p>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-3 form-group">
-                                <label>ID number</label>
-                                <input type="text" class="form-control" name="id_number" value="{{ form.id_number.value | default_if_none:'' }}">
-                                {% if form.id_number.errors %}
-                                    {% for error in form.id_number.errors %}
-                                        <p class="text-warning">{{ error }}</p>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
                             <div class="col-md-2">
                                 <input type="submit" class="btn btn-outline-success mt-lg-4" name="search" value="Search">
                             </div>
@@ -56,47 +36,38 @@
         </div>
     </div>
 
-    {% if policies %}
+    {% if searched %}
         <div class="row ">
             <div class="col-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
+                        {% if dependents %}
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th> Policy number</th>
                                         <th> Name</th>
-                                        <th class="text-center"> Dependents</th>
-                                        <th class="text-center"> Monthly premium</th>
+                                        <th class="text-center"> ID number</th>
+                                        <th class="text-center"> Gender</th>
+                                        <th class="text-center">Chronic add-on</th>
                                         <th class="text-center"> Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for policy in policies %}
+                                    {% for dependent in dependents %}
                                     <tr>
 
                                         <td>{{ forloop.counter }}</td>
-                                        <td>{{ policy.id }}</td>
-
-                                        <td>
-                                            <a href="{% url 'access_admin:view_policy' policy.id %}" class="text-muted">
-                                                {{ policy.title }} {{ policy.firstName | title }} {{ policy.surname | title }}
-                                            </a>
-                                        </td>
-
-                                        <td class="text-center"> {{ policy.dependents | length }}</td>
-                                        <td class="text-center"> {{ policy.monthly_premium | intcomma | floatformat:2 }}</td>
+                                        <td>{{dependent.firstName}} {{ dependent.surname}}</td>
+                                        <td class="text-center">{{dependent.idNumber}} </td>
+                                        <td class="text-center"> {{ dependent.gender }}</td>
                                         <td class="text-center">
-                                            {% if policy.status == 'active' %}
-                                                <p class="badge badge-outline-success">Active</p>
-                                            {% elif policy.status == 'lapsed' %}
-                                                <p class="badge badge-outline-danger">Lapsed</p>
-                                            {% else %}
-                                                <p class="badge badge-outline-warning">Overdue</p>
-                                            {% endif %}
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input form-check-success"  checked>
+                                            </div>
                                         </td>
+                                        <td class="text-center  "><p class="badge badge-outline-success">active</p></td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -110,6 +81,9 @@
                                 <input type="hidden" name="last" value="{{ last }}">
                             {% endif %}
                         </div>
+                        {% else %}
+                            <p class="text-center badge-dark">Your search returned no members</p>
+                        {% endif %}
 
                     </div>
                 </div>
